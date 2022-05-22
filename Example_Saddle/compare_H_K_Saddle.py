@@ -3,6 +3,8 @@
 """
 Created on Mon May  2 20:07:22 2022
 
+Compare E-MPL with Gaussian noise and E-MPL with empirical noise
+
 @author: dliu
 """
 

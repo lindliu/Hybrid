@@ -68,7 +68,7 @@ if __name__=="__main__":
     #########################################################################
     from simulate_tools import simulate_x_with_sigma
     idx_init, length = 0, 3000
-    x_init, s_init = np.array([[0.9994]]), np.array([[0.503]])
+    x_init, s_init = x1[idx_init], s1[idx_init]
     x_series, s_series, t_series, fx_series = simulate_x_with_sigma(model_f, x_init, s_init, dt_x, idx_init, s1, length)
     
     plt.figure(figsize=[16,5])

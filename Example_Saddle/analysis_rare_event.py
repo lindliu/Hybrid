@@ -3,6 +3,9 @@
 """
 Created on Fri Apr  8 09:54:16 2022
 
+This code has two parts:
+    Part I: Simulate 100 times by two E-MPL models.
+    Part II: Compare the distribution of rare event time.
 @author: dliu
 """
 
@@ -14,12 +17,14 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utils import get_dataset, collect_datasets, get_cond_noise, get_inter_grid
-from model import model_f_hopf, model_fs_dist_hopf
+from utils import collect_datasets
 from misc import parameters
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 params = parameters(data_type='Saddle_high', n_trainset=20, kx=1, ks=10, x_lower_bound=-1, lr=5e-4)
+
+
+########################## Part I #############################
 
 ###############################################################
 ##### analysis the distribution of the time of rare event #####
@@ -110,8 +115,10 @@ plt.hist(t_end_e)
 
 
 
-
+####################################################
+###################### Part II #####################
 ##### compare the time that rare event happens #####
+####################################################
 
 from scipy.interpolate import interp1d
 import statsmodels.distributions.empirical_distribution as edf

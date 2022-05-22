@@ -12,8 +12,7 @@ import os
 import glob
 
 import matplotlib
-font = {'family' : 'normal',
-        'weight' : 'normal',
+font = {'weight' : 'normal',
         'size'   : 18}
 matplotlib.rc('font', **font)
 matplotlib.rc('lines', linewidth=.6)
@@ -67,7 +66,7 @@ def train_model(model_f, inputs, target, niter, lr, batchsize=1024, fs_mean=None
     """
     inputs = torch.tensor(inputs, dtype=torch.float32).to(device)
     target = torch.tensor(target, dtype=torch.float32).to(device)
-    ## train model by data
+
     mse = torch.nn.MSELoss() # Mean squared error
     optim_F = optim.Adam(model_f.parameters(), lr=lr)
     
@@ -91,7 +90,7 @@ def train_model(model_f, inputs, target, niter, lr, batchsize=1024, fs_mean=None
         optim_F.zero_grad()
         
         if i%1000==0:
-            print('iter:{}. derivative loss: {:.6f}'.format(i, loss_R.item()))
+            print('iter:{}. derivative loss: {:.6f}'.format(i, loss.item()))
             
     return model_f
 

@@ -16,8 +16,7 @@ import matplotlib.pyplot as plt
 plt.set_cmap('plasma')
 
 import matplotlib
-font = {'family' : 'normal',
-        'weight' : 'normal',
+font = {'weight' : 'normal',
         'size'   : 18}
 matplotlib.rc('font', **font)
 matplotlib.rc('lines', linewidth=.6)
