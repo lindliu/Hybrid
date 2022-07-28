@@ -11,6 +11,7 @@ import torch
 import numpy as np
 from utils import get_dataset, get_inter_grid, get_cond_noise
 from misc import train_model, parameters
+import time
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 params = parameters(data_type='Saddle_high', n_trainset=20, kx=1, ks=10, x_lower_bound=-1, lr=5e-4)
@@ -35,11 +36,13 @@ if __name__=="__main__":
     inputs = np.c_[np.ones_like(x1), x1, s1]
     target = np.c_[diff_x,diff_s]
     # model_f = train_model(model_f, inputs, target, niter=params.niter, lr=params.lr, fs_mean=fs_saddle_high)
+    t0 = time.time()
     model_f = train_model(model_f, inputs, target, niter=15000, lr=params.lr)
+    print(f'time for training model f: {(time.time()-t0)/60}')
     
     torch.save(model_f.state_dict(), params.model_f_path)
 
-    
+
     #####################
     ### train model H ###
     #####################
@@ -72,7 +75,10 @@ if __name__=="__main__":
     from model import model_std_mean_saddle
     model_H = model_std_mean_saddle().to(device)
     
-    model_H = train_model(model_H, inputs=obs, target=std_mean, niter=50000, lr=params.lr)
+    t0 = time.time()
+    model_H = train_model(model_H, inputs=obs, target=std_mean, niter=15000, lr=params.lr)
+    print(f'time for training model H: {(time.time()-t0)/60}')
+
     torch.save(model_H.state_dict(), params.model_std_mean_path)
     
     
@@ -90,7 +96,10 @@ if __name__=="__main__":
     obs = np.c_[x1_re, s1_re, unif_re]
     eps = dist[idx_used,:].reshape(-1,1)
     
+    t0 = time.time()
     model_K = train_model(model_K, inputs=obs, target=eps, niter=200000, lr=params.lr)
+    print(f'time for training model K: {(time.time()-t0)/60}')
+
     torch.save(model_K.state_dict(), params.model_dist_path)
     
     

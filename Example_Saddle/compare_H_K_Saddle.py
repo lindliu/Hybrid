@@ -184,13 +184,13 @@ if __name__=="__main__":
     W_dist_norm = Wasserstein_dist(compare[:,1,:], compare[:,2,:], unif, p)
     W_dist_pred = Wasserstein_dist(compare[:,0,:], compare[:,2,:], unif, p)
     print('W{} normal distance: {}'.format(p, np.mean(W_dist_norm)))
-    print('W{} predict distance: {}'.format(p, np.mean(W_dist_pred)))
+    print('W{} empirical distance: {}'.format(p, np.mean(W_dist_pred)))
 
     p = 2
     W_dist_norm = Wasserstein_dist(compare[:,1,:], compare[:,2,:], unif, p)
     W_dist_pred = Wasserstein_dist(compare[:,0,:], compare[:,2,:], unif, p)
     print('W{} normal distance: {}'.format(p, np.mean(W_dist_norm)))
-    print('W{} predict distance: {}'.format(p, np.mean(W_dist_pred)))
+    print('W{} empirical distance: {}'.format(p, np.mean(W_dist_pred)))
     
     # plt.figure()
     # plt.scatter(np.arange(W_dist_pred.shape[0]), W_dist_pred, s=1, label='W predict dist')

@@ -77,6 +77,7 @@ t_end_n = np.array([i[-1] for i in t_n_all])
 np.savetxt('./figures/rare_event_normal.txt', t_end_n)
 plt.figure()
 plt.hist(t_end_n)
+plt.title('histogram by Gaussian noise')
 # plt.savefig('./figures/dist_by_GNN.png')
 
 
@@ -107,6 +108,7 @@ t_end_e = np.array([i[-1] for i in t_e_all])
 np.savetxt('./figures/rare_event_empirical.txt', t_end_e)
 plt.figure()
 plt.hist(t_end_e)
+plt.title('histogram by Empirical noise')
 # plt.savefig('./figures/dist_by_EN.png')
     
 
@@ -167,7 +169,7 @@ W_dist_pred = Wasserstein_dist(t_end_e, t_end_, unif, p)
 print('distance from E-MLP with Gaussian noise to test is: {}'.format(W_dist_norm))
 print('distance from E-MLP with empirical noise to test is: {}'.format(W_dist_pred))
 
-    
+
 fig = plt.figure(figsize=[10,5], constrained_layout=True)
 plt.plot(t_end_, unif, linewidth=2)
 plt.plot(t_end_n, unif, '--', linewidth=2)
@@ -175,6 +177,5 @@ plt.plot(t_end_e, unif, '--', linewidth=2)
 plt.legend(['By Saddle(high noise) data','By simulations of E-MLP with Gaussian noise','By simulations of E-MLP with empirical noise'])
 plt.title('The ECDF of the time that rare event happens')
 plt.xlabel('t')
-plt.savefig('./figures/distribution_rare_event.png', bbox_inches='tight')
-           
-                
+# plt.savefig('./figures/distribution_rare_event.png', bbox_inches='tight')
+

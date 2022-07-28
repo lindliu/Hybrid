@@ -89,7 +89,7 @@ if __name__=="__main__":
     # plt.ylim(-1.5,1)
     plt.xlabel('t')
     plt.legend(loc='lower right')
-    plt.savefig('./figures/Saddle_generate_x_by_given_sigma_E-MLP.png',bbox_inches='tight')
+    # plt.savefig('./figures/Saddle_generate_x_by_given_sigma_E-MLP.png',bbox_inches='tight')
     
     ##############################
     ####### estimate E-MLP #######
