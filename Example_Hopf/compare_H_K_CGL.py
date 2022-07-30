@@ -228,6 +228,7 @@ if __name__=="__main__":
         std, mean = model_H(point).cpu().detach().numpy().flatten()
         std = np.abs(std)
         y_norm_ = norm.ppf(unif, loc=mean, scale=std)
+        # y_norm_ = norm.ppf(unif, loc=0, scale=std)
         y_norm = get_inverse_cdf(unif, y_norm_, unif_new)
         
         y_emp_ = eps.flatten()[k*bins_u:(k+1)*bins_u]

@@ -14,7 +14,7 @@ from utils import get_dataset, get_inter_grid, get_cond_noise
 from misc import train_model, parameters
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-params = parameters(data_type='CGL', n_trainset=1, kx=1, ks=20, lr=5e-4)
+params = parameters(data_type='CGL', n_trainset=1, kx=1, ks=10, lr=5e-4)
 
 if __name__=="__main__":
     

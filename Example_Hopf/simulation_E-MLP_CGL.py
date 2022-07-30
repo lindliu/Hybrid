@@ -16,7 +16,7 @@ from utils import get_dataset
 from misc import parameters
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-params = parameters(data_type='CGL', n_trainset=1, kx=1, ks=20, lr=5e-4)
+params = parameters(data_type='CGL', n_trainset=1, kx=1, ks=10, lr=5e-4)
 
 data_test_pathes = params.data_pathes[params.n_trainset:params.n_trainset+1]
 
