@@ -150,7 +150,7 @@ def plot_result_N(model_f, x1, s1, diff_x, diff_s):
     
     cbar = fig.colorbar(im1, ax=axes.ravel().tolist()[7], shrink=0.7)
     
-    fig.savefig('./figures/N_Saddle.png', bbox_inches='tight')
+    # fig.savefig('./figures/N_Saddle.png', bbox_inches='tight')
     
     print("The mean abs error for x is: {:.4f} and the max abs error is: {:.4f}".format(np.average(abs_error_x), abs_error_x.max()))
     print("The mean abs error for sigma is: {:.4f} and the max abs error is: {:.4f}".format(np.average(abs_error_sigma), abs_error_sigma.max()))
@@ -198,12 +198,11 @@ def plot_result_H(obs, targ_out, std_mean):
     axes[5].title.set_text('absolute error')
     cbar = fig.colorbar(im, ax=axes.ravel().tolist()[5], shrink=0.95)
     
-    fig.savefig('./figures/H_Saddle.png', bbox_inches='tight')
+    # fig.savefig('./figures/H_Saddle.png', bbox_inches='tight')
 
 
-def plot_result_K(obs, eps, eps_out):
-    
-    fig = plt.figure(figsize=[20,5])
+def plot_result_K_H(obs, eps, eps_out, model_H):
+    fig = plt.figure(figsize=[30,10])
     ax = fig.add_subplot(1,3,1,projection='3d')
     ax.scatter(obs[:,0], obs[:,1], obs[:,2], c=eps_out, s=.1)
     ax.set_xlabel('$x_0$')
@@ -219,17 +218,110 @@ def plot_result_K(obs, eps, eps_out):
     ax.set_title('empirical distribution')
     
     ax = fig.add_subplot(1,3,3)
-    k = 1
-    ax.plot(eps_out.flatten()[k*bins_u:(k+1)*bins_u], unif, label='estimated distribution')
-    ax.plot(eps.flatten()[k*bins_u:(k+1)*bins_u], unif, label='empirical distribution')
+    k = np.argmin(obs[:,0])//50  #distribution at rare event
+    mm=np.logical_and(obs[:,0]>0.2,obs[:,0]<0.3)
+    k = np.random.choice(np.arange(obs.shape[0])[mm])//50
+    ### distribution by empirical noise
+    ax.plot(eps_out.flatten()[k*bins_u:(k+1)*bins_u], unif, label='Estimated Empirical Distribution')
+    
+    ### distribution by Gaussian noise
+    conditions = torch.tensor(np.c_[np.array([1]), obs[[k],:-1]], dtype=torch.float32).to(device)
+    std_mean = model_H(conditions).cpu().detach().numpy()
+    from scipy.stats import norm
+    std, mean = std_mean[0,0], std_mean[0,1]
+    x = np.linspace(eps.flatten()[k*bins_u:(k+1)*bins_u].min(), eps.flatten()[k*bins_u:(k+1)*bins_u].max(), 100)
+    ax.plot(x, norm.cdf(x, loc=mean, scale=std), label='Estimated Gaussian Distribution')
+    
+    ### empirical distribution from test dataset
+    ax.plot(eps.flatten()[k*bins_u:(k+1)*bins_u], unif, label='Test dataset Empirical Distribution')
+
     ax.legend()
     ax.set_title('example distribution')
     
-    fig.savefig('./figures/K_Saddle.png', bbox_inches='tight')
+    # fig.savefig('./figures/K_Saddle.png', bbox_inches='tight')
+    
+
+
+def compare_distribution_rare_ordinary_case(obs, eps, eps_out, model_H, cond_dist_test, x_inter, s_inter):
+    fig = plt.figure(constrained_layout=True, figsize=(20, 10))
+    
+    subfigs = fig.subfigures(1, 2)
+    axsLeft = subfigs[0].subplots(1, 1, sharey=True)
+    axsRight = subfigs[1].subplots(2, 1, sharex=True)
+    
+    k_r = np.argmin(obs[:,0])//50  #distribution at rare event
+    case_rare = obs[[k_r*50],:-1]
+    mm=np.logical_and(obs[:,0]>0.2,obs[:,0]<0.3)
+    k_c = np.random.choice(np.arange(obs.shape[0])[mm])//50
+    case_ordinary = obs[[k_c*50],:-1]
+    
+    axsLeft.scatter(x1_,s1_, s=.1)
+    axsLeft.scatter(case_rare[0,0], case_rare[0,-1], marker="o", s=100, c='r')
+    # axsLeft.annotate('rare case',  xy=(case_rare[0,0], case_rare[0,-1]))
+    axsLeft.text(case_rare[0,0], case_rare[0,-1], s='rare case', fontsize='xx-large')
+    axsLeft.scatter(case_ordinary[0,0], case_ordinary[0,-1], marker="o", s=100, c='r')
+    # axsLeft.annotate('ordinary case',  xy=(case_ordinary[0,0], case_ordinary[0,-1]))
+    axsLeft.text(case_ordinary[0,0], case_ordinary[0,-1], s='ordinary case', fontsize='xx-large')
+    axsLeft.set_title('Saddle training datasets scatter plot')
+    axsLeft.set_xlabel('x')
+    axsLeft.set_ylabel(r'$\bar{\sigma}$')
+    
+    ##############################
+    ### rare case distribution ###
+    ##############################
+    ### distribution by empirical noise
+    axsRight[0].plot(eps_out.flatten()[k_r*bins_u:(k_r+1)*bins_u], unif, label='Predicted Empirical Distribution')
+    
+    ### distribution by Gaussian noise
+    conditions = torch.tensor(np.c_[np.array([1]), case_rare], dtype=torch.float32).to(device)
+    std_mean = model_H(conditions).cpu().detach().numpy()
+    from scipy.stats import norm
+    std, mean = std_mean[0,0], std_mean[0,1]
+    x = np.linspace(eps.flatten()[k_r*bins_u:(k_r+1)*bins_u].min(), eps.flatten()[k_r*bins_u:(k_r+1)*bins_u].max(), 100)
+    axsRight[0].plot(x, norm.cdf(x, loc=mean, scale=std), label='Predicted Gaussian Distribution')
+    
+    ### empirical distribution from train dataset
+    axsRight[0].plot(eps.flatten()[k_r*bins_u:(k_r+1)*bins_u], unif, label='Empirical Distribution from trainsets')
+    
+    ### empirical distribution from test dataset
+    i = (case_rare[0,0]>x_inter).sum()-1
+    j = (case_rare[0,-1]>s_inter).sum()-1
+    axsRight[0].plot(cond_dist_test[i,j,:], unif, label='Empirical Distribution from testsets')
+    
+    axsRight[0].legend(loc='upper left')
+    axsRight[0].set_title('The distribution of noise for rare case in left Figure')
+    
+    ##################################
+    ### ordinary case distribution ###
+    ##################################
+    ### distribution by empirical noise
+    axsRight[1].plot(eps_out.flatten()[k_c*bins_u:(k_c+1)*bins_u], unif, label='Predicted Empirical Distribution')
+    
+    ### distribution by Gaussian noise
+    conditions = torch.tensor(np.c_[np.array([1]), case_ordinary], dtype=torch.float32).to(device)
+    std_mean = model_H(conditions).cpu().detach().numpy()
+    from scipy.stats import norm
+    std, mean = std_mean[0,0], std_mean[0,1]
+    x = np.linspace(eps.flatten()[k_c*bins_u:(k_c+1)*bins_u].min(), eps.flatten()[k_c*bins_u:(k_c+1)*bins_u].max(), 100)
+    axsRight[1].plot(x, norm.cdf(x, loc=mean, scale=std), label='Predicted Gaussian Distribution')
+    
+    ### empirical distribution from train dataset
+    axsRight[1].plot(eps.flatten()[k_c*bins_u:(k_c+1)*bins_u], unif, label='Empirical Distribution from trainsets')
+    
+    ### empirical distribution from test dataset
+    i = (case_ordinary[0,0]>x_inter).sum()-1
+    j = (case_ordinary[0,-1]>s_inter).sum()-1
+    axsRight[1].plot(cond_dist_test[i,j,:], unif, label='Empirical Distribution from testsets')
+    
+    axsRight[1].legend(loc='upper left')
+    axsRight[1].set_title('The distribution of noise for ordinary case in left Figure')
+    
+    fig.savefig('./figures/Saddle_rare_ordinary_case.png', bbox_inches='tight')
+
 
     
 if __name__=="__main__":
-
+    
     params = parameters(data_type='Saddle_high', n_trainset=20, kx=1, ks=10, x_lower_bound=-1, lr=5e-4)
     data_train_pathes = params.data_pathes[:params.n_trainset]
     x_lower_bound = params.x_lower_bound
@@ -277,20 +369,20 @@ if __name__=="__main__":
     s_idx = s_idx_.sum(axis=1)-1
     
     
-    obs = np.c_[np.ones_like(s1_re), x1_re, s1_re]
+    obs_H = np.c_[np.ones_like(s1_re), x1_re, s1_re]
     std_mean = np.c_[cond_std[x_idx, s_idx], cond_mean[x_idx, s_idx]]
     
-    idx_ = np.arange(0, obs.shape[0], 10)
-    obs = obs[idx_]
+    idx_ = np.arange(0, obs_H.shape[0], 10)
+    obs_H = obs_H[idx_]
     std_mean = std_mean[idx_]
     
-    obs_tensor = torch.tensor(obs, dtype=torch.float32).to(device)
+    obs_tensor = torch.tensor(obs_H, dtype=torch.float32).to(device)
     targ_out = model_H(obs_tensor).cpu().detach().numpy()
     
-    plot_result_H(obs, targ_out, std_mean)
+    plot_result_H(obs_H, targ_out, std_mean)
     
     
-    
+    np.random.seed(85)
     ################################
     ### plot results for model K ###
     ################################
@@ -316,15 +408,37 @@ if __name__=="__main__":
     s1_re = np.repeat(s1_resample, bins_u, axis=0)
     unif_re = np.repeat(unif[:,None], x1_resample.shape[0], axis=1).T.reshape(-1,1)
 
-    obs = np.c_[x1_re, s1_re, unif_re]
+    obs_K = np.c_[x1_re, s1_re, unif_re]
     eps = target_resample.reshape(-1,1)
 
-    obs_tensor = torch.tensor(obs, dtype=torch.float32).to(device)
+    obs_tensor = torch.tensor(obs_K, dtype=torch.float32).to(device)
     eps_tensor = torch.tensor(eps, dtype=torch.float32).to(device) 
     
     eps_out = model(obs_tensor).cpu().detach().numpy()
     
-    plot_result_K(obs, eps, eps_out)
+    # plot_result_K(obs_K, eps, eps_out)
+    plot_result_K_H(obs_K, eps, eps_out, model_H)
+
+
+
+
+    ###################################################################################
+    ### compare distribution(train,test,estimated empirical and estimated Gaussian) ###
+    ###                     in rare and ordinary case                               ###
+    ###################################################################################
+    data_test_pathes = params.data_pathes[params.n_trainset:params.n_trainset+80]
+    x1_test, x2_test, s1_test, s2_test, diff_x_test, diff_s_test, dt_x_test, dt_s_test = \
+        get_dataset(data_test_pathes, x_lower_bound=x_lower_bound, kx=kx, ks=ks, resample=False)
     
+    txs = torch.tensor(np.c_[np.ones_like(s1_test),x1_test,s1_test], dtype=torch.float32).to(device)
+    numerical = model_f(txs).cpu().detach().numpy()
+    ### s2 = s1+fs*dt+eps, then we can get the empirical distribution of eps under each condition
+    eps_test = (s2_test - (s1_test + numerical[:,[-1]]*dt_s_test))/dt_s_test**.5
     
+    bins_x, bins_s, bins_u = params.bins_x, params.bins_s, params.bins_u
+    x_inter_, s_inter_ = get_inter_grid(x1[:,0], s1[:,0], bins_x, bins_s)
+    dist_test, cond_dist_test, cond_std_test, cond_mean_test, idx_used_test, unif_test = \
+        get_cond_noise(eps_test, x1_test, s1_test, x_inter, s_inter, shape=[bins_x, bins_s, bins_u], n=100)
+    
+    compare_distribution_rare_ordinary_case(obs_K, eps, eps_out, model_H, cond_dist_test, x_inter_, s_inter_)
     

@@ -91,6 +91,87 @@ def plot_result_K(obs, eps, eps_out):
     ax.set_aspect(.03)
     fig.savefig('./figures/CGL_K_distribution.png',bbox_inches='tight')
 
+
+
+def compare_distribution_rare_ordinary_case(obs, eps, eps_out, model_H, cond_dist_test, x_inter, s_inter):
+    fig = plt.figure(constrained_layout=True, figsize=(23, 10))
+    
+    subfigs = fig.subfigures(1, 2)
+    axsLeft = subfigs[0].subplots(1, 1, sharey=True)
+    axsRight = subfigs[1].subplots(2, 1, sharex=True)
+    
+    k_r = np.argmin(obs[:,0])//50  #distribution at rare event
+    case_rare = obs[[k_r*50],:-1]
+    mm=np.logical_and(obs[:,0]>0.,obs[:,0]<0.1)
+    k_c = np.random.choice(np.arange(obs.shape[0])[mm])//50
+    case_ordinary = obs[[k_c*50],:-1]
+    
+    axsLeft.scatter(x1_[:,0],s1_, s=.1)
+    axsLeft.scatter(case_rare[0,0], case_rare[0,-1], marker="o", s=100, c='r')
+    # axsLeft.annotate('rare case',  xy=(case_rare[0,0], case_rare[0,-1]))
+    axsLeft.text(case_rare[0,0], case_rare[0,-1], s='case 1', fontsize='xx-large')
+    axsLeft.scatter(case_ordinary[0,0], case_ordinary[0,-1], marker="o", s=100, c='r')
+    # axsLeft.annotate('ordinary case',  xy=(case_ordinary[0,0], case_ordinary[0,-1]))
+    axsLeft.text(case_ordinary[0,0], case_ordinary[0,-1], s='case 2', fontsize='xx-large')
+    axsLeft.set_title('CGL training datasets scatter plot')
+    axsLeft.set_xlabel('$x_1$')
+    axsLeft.set_ylabel(r'$\bar{\sigma}$')
+    
+    ##############################
+    ### rare case distribution ###
+    ##############################
+    ### distribution by empirical noise
+    axsRight[0].plot(eps_out.flatten()[k_r*bins_u:(k_r+1)*bins_u], unif, label='Predicted Empirical Distribution')
+    
+    ### distribution by Gaussian noise
+    conditions = torch.tensor(np.c_[np.array([1]), case_rare], dtype=torch.float32).to(device)
+    std_mean = model_H(conditions).cpu().detach().numpy()
+    from scipy.stats import norm
+    std, mean = std_mean[0,0], std_mean[0,1]
+    x = np.linspace(eps.flatten()[k_r*bins_u:(k_r+1)*bins_u].min(), eps.flatten()[k_r*bins_u:(k_r+1)*bins_u].max(), 100)
+    axsRight[0].plot(x, norm.cdf(x, loc=mean, scale=std), label='Predicted Gaussian Distribution')
+    
+    ### empirical distribution from train dataset
+    axsRight[0].plot(eps.flatten()[k_r*bins_u:(k_r+1)*bins_u], unif, label='Empirical Distribution from trainsets')
+    
+    ### empirical distribution from test dataset
+    i = (case_rare[0,0]>x_inter).sum()-1
+    j = (case_rare[0,-1]>s_inter).sum()-1
+    axsRight[0].plot(cond_dist_test[i,j,:], unif, label='Empirical Distribution from testsets')
+    
+    axsRight[0].legend(loc='upper left')
+    axsRight[0].set_title('The distribution of noise for case 1 in left Figure')
+    
+    ##################################
+    ### ordinary case distribution ###
+    ##################################
+    ### distribution by empirical noise
+    axsRight[1].plot(eps_out.flatten()[k_c*bins_u:(k_c+1)*bins_u], unif, label='Predicted Empirical Distribution')
+    
+    ### distribution by Gaussian noise
+    conditions = torch.tensor(np.c_[np.array([1]), case_ordinary], dtype=torch.float32).to(device)
+    std_mean = model_H(conditions).cpu().detach().numpy()
+    from scipy.stats import norm
+    std, mean = std_mean[0,0], std_mean[0,1]
+    x = np.linspace(eps.flatten()[k_c*bins_u:(k_c+1)*bins_u].min(), eps.flatten()[k_c*bins_u:(k_c+1)*bins_u].max(), 100)
+    axsRight[1].plot(x, norm.cdf(x, loc=mean, scale=std), label='Predicted Gaussian Distribution')
+    
+    ### empirical distribution from train dataset
+    axsRight[1].plot(eps.flatten()[k_c*bins_u:(k_c+1)*bins_u], unif, label='Empirical Distribution from trainsets')
+    
+    ### empirical distribution from test dataset
+    i = (case_ordinary[0,0]>x_inter).sum()-1
+    j = (case_ordinary[0,-1]>s_inter).sum()-1
+    axsRight[1].plot(cond_dist_test[i,j,:], unif, label='Empirical Distribution from testsets')
+    
+    axsRight[1].legend(loc='upper left')
+    axsRight[1].set_title('The distribution of noise for case 2 in left Figure')
+    
+    fig.savefig('./figures/CGL_rare_ordinary_case.png', bbox_inches='tight')
+
+
+
+
 if __name__=="__main__":
 
     data_train_pathes = params.data_pathes[:params.n_trainset]
@@ -166,12 +247,41 @@ if __name__=="__main__":
     s1_re = np.repeat(s1_[idx,:], bins_u, axis=0)
     unif_re = np.repeat(unif[:,None], idx.shape[0], axis=1).T.reshape(-1,1)
 
-    obs = np.c_[x1_re, s1_re, unif_re]
+    obs_K = np.c_[x1_re, s1_re, unif_re]
     eps = target_[idx,:].reshape(-1,1)
 
-    obs_tensor = torch.tensor(obs, dtype=torch.float32).to(device)
+    obs_tensor = torch.tensor(obs_K, dtype=torch.float32).to(device)
     eps_tensor = torch.tensor(eps, dtype=torch.float32).to(device) 
     
     eps_out = model_K(obs_tensor).cpu().detach().numpy()
     
-    plot_result_K(obs, eps, eps_out)
+    plot_result_K(obs_K, eps, eps_out)
+    
+    
+    
+    
+    
+    
+
+
+    ###################################################################################
+    ### compare distribution(train,test,estimated empirical and estimated Gaussian) ###
+    ###                     in rare and ordinary case                               ###
+    ###################################################################################
+    data_test_pathes = params.data_pathes[params.n_trainset:params.n_trainset+1]
+    x1_test, x2_test, s1_test, s2_test, diff_x_test, diff_s_test, dt_x_test, dt_s_test = \
+        get_dataset(data_test_pathes, x_lower_bound=x_lower_bound, kx=kx, ks=ks, resample=False)
+
+
+    txs = torch.tensor(np.c_[np.ones_like(s1_test),x1_test,s1_test], dtype=torch.float32).to(device)
+    numerical = model_f(txs).cpu().detach().numpy()
+    ### s2 = s1+fs*dt+eps, then we can get the empirical distribution of eps under each condition
+    eps_test = (s2_test - (s1_test + numerical[:,[-1]]*dt_s_test))/dt_s_test**.5
+    
+    bins_x, bins_s, bins_u = params.bins_x, params.bins_s, params.bins_u
+    x_inter, s_inter = get_inter_grid(x1[:,0], s1[:,0], bins_x, bins_s)
+    dist_test, cond_dist_test, cond_std_test, cond_mean_test, idx_used_test, unif_test = \
+        get_cond_noise(eps_test, x1_test, s1_test, x_inter, s_inter, shape=[bins_x, bins_s, bins_u], n=100)
+    
+    
+    compare_distribution_rare_ordinary_case(obs_K, eps, eps_out, model_H, cond_dist_test, x_inter, s_inter)

@@ -13,6 +13,9 @@ from utils import get_dataset, get_inter_grid, get_cond_noise
 from misc import train_model, parameters
 import time
 
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+    
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 params = parameters(data_type='Saddle_high', n_trainset=20, kx=1, ks=10, x_lower_bound=-1, lr=5e-4)
 
@@ -39,6 +42,7 @@ if __name__=="__main__":
     t0 = time.time()
     model_f = train_model(model_f, inputs, target, niter=15000, lr=params.lr)
     print(f'time for training model f: {(time.time()-t0)/60}')
+    print(f'model N has {count_parameters(model_f)} parameters')
     
     torch.save(model_f.state_dict(), params.model_f_path)
 
@@ -78,6 +82,7 @@ if __name__=="__main__":
     t0 = time.time()
     model_H = train_model(model_H, inputs=obs, target=std_mean, niter=15000, lr=params.lr)
     print(f'time for training model H: {(time.time()-t0)/60}')
+    print(f'model H has {count_parameters(model_H)} parameters')
 
     torch.save(model_H.state_dict(), params.model_std_mean_path)
     
@@ -99,6 +104,7 @@ if __name__=="__main__":
     t0 = time.time()
     model_K = train_model(model_K, inputs=obs, target=eps, niter=200000, lr=params.lr)
     print(f'time for training model K: {(time.time()-t0)/60}')
+    print(f'model K has {count_parameters(model_K)} parameters')
 
     torch.save(model_K.state_dict(), params.model_dist_path)
     

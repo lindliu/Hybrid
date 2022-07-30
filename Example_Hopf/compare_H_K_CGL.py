@@ -206,14 +206,14 @@ if __name__=="__main__":
     s_inter = s_inter_train
     
     num = 1000 ### to compare distribution of selected num points 
-    x1, s1, eps = get_eps(data_test_pathes, model_f)
-    x1_mask = np.logical_and(x1[:,0]>x_inter.min(), x1[:,0]<x_inter.max())
-    s1_mask = np.logical_and(s1[:,0]>s_inter.min(), s1[:,0]<s_inter.max())
+    x1_test, s1_test, eps_test = get_eps(data_test_pathes, model_f)
+    x1_mask = np.logical_and(x1_test[:,0]>x_inter.min(), x1_test[:,0]<x_inter.max())
+    s1_mask = np.logical_and(s1_test[:,0]>s_inter.min(), s1_test[:,0]<s_inter.max())
     mask = np.logical_and(x1_mask, s1_mask)
-    x1 = x1[mask]
-    s1 = s1[mask]
-    eps = eps[mask]
-    eps, eps_out, unif, obs_tensor = get_eps_out(x1,s1,eps,x_inter,s_inter,num)
+    x1_test = x1_test[mask]
+    s1_test = s1_test[mask]
+    eps_test = eps_test[mask]
+    eps, eps_out, unif, obs_tensor = get_eps_out(x1_test,s1_test,eps_test,x_inter,s_inter,num)
     unif_new = np.linspace(unif.min(), unif.max(), 100)
     
     W1_dist_pred, W1_dist_norm = [], []
@@ -224,8 +224,9 @@ if __name__=="__main__":
         y_pred_ = eps_out.flatten()[k*bins_u:(k+1)*bins_u]
         y_pred = get_inverse_cdf(unif, y_pred_, unif_new)
         
-        point = torch.cat([torch.tensor([1]).to(device), obs_tensor[k*bins_u, [0,2]]])
-        std, mean = np.abs(model_H(point).cpu().detach().numpy().flatten())
+        point = torch.cat([torch.tensor([1]).to(device), obs_tensor[k*bins_u, [0,1,2]]])
+        std, mean = model_H(point).cpu().detach().numpy().flatten()
+        std = np.abs(std)
         y_norm_ = norm.ppf(unif, loc=mean, scale=std)
         y_norm = get_inverse_cdf(unif, y_norm_, unif_new)
         
@@ -242,11 +243,11 @@ if __name__=="__main__":
         W2_dist_norm.append(Wasserstein_dist(y_norm, y_emp, unif_new, p))
         
         
-    print('W1 normal distance: {}'.format(np.mean(W1_dist_norm)))
-    print('W1 predict distance: {}'.format(np.mean(W1_dist_pred)))
+    print('W1 estimated normal distance: {}'.format(np.mean(W1_dist_norm)))
+    print('W1 estimated empirical distance: {}'.format(np.mean(W1_dist_pred)))
 
-    print('W2 normal distance: {}'.format(np.mean(W2_dist_norm)))
-    print('W2 predict distance: {}'.format(np.mean(W2_dist_pred)))
+    print('W2 estimated normal distance: {}'.format(np.mean(W2_dist_norm)))
+    print('W2 estimated empirical distance: {}'.format(np.mean(W2_dist_pred)))
 
     
     plt.figure()
@@ -256,9 +257,9 @@ if __name__=="__main__":
     
     
     plt.figure(figsize=[10,6])
-    plt.plot(y_pred, unif_new, '--', label='learned dist')
-    plt.plot(y_norm, unif_new, '--', label='normal dist')
-    plt.plot(y_emp, unif_new, label='empirical dist')
+    plt.plot(y_pred, unif_new, '--', label='estimated empirical dist')
+    plt.plot(y_norm, unif_new, '--', label='estimated normal dist')
+    plt.plot(y_emp, unif_new, label='testset empirical dist')
     plt.legend()
     # plt.savefig('./figures/Hopf_dist_slides.png',bbox_inches='tight')
     

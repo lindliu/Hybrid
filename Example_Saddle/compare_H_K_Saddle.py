@@ -25,7 +25,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 params = parameters(data_type='Saddle_high', n_trainset=20, kx=1, ks=10, x_lower_bound=-1, lr=5e-4)
 
 data_train_pathes = params.data_pathes[:params.n_trainset]
-data_test_pathes = params.data_pathes[params.n_trainset:params.n_trainset+40]
+data_test_pathes = params.data_pathes[params.n_trainset:params.n_trainset+80]
 
 bins_x = params.bins_x
 bins_s = params.bins_s
@@ -149,8 +149,8 @@ if __name__=="__main__":
     obs, emp_estimated = get_distribution(x_.flatten(), s_.flatten(), unif)
     emp_train = emp_estimated.reshape([bins_x,bins_s,bins_u])
     
-    x1, s1, eps = get_eps(data_test_pathes, model_f)
-    samp = get_samples_grid(eps, x1, s1, x_inter, s_inter, shape=[bins_x, bins_s, bins_u], n=200)
+    x1_test, s1_test, eps_test = get_eps(data_test_pathes, model_f)
+    samp = get_samples_grid(eps_test, x1_test, s1_test, x_inter, s_inter, shape=[bins_x, bins_s, bins_u], n=200)
     
     norm_train = np.zeros([bins_x, bins_s, bins_u])
     emp_test = np.zeros([bins_x, bins_s, bins_u])

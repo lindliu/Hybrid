@@ -16,7 +16,7 @@ from utils import get_dataset
 from misc import parameters
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-params = parameters(data_type='CGL', n_trainset=1, kx=1, ks=10, lr=5e-4)
+params = parameters(data_type='CGL', n_trainset=1, kx=1, ks=20, lr=5e-4)
 
 data_test_pathes = params.data_pathes[params.n_trainset:params.n_trainset+1]
 
@@ -114,7 +114,7 @@ def hopf_comparison_plot(x_series, s_series, t_series, idx):
     # fig.colorbar(im, ax=[ax4,ax5,ax6],location='bottom',shrink=.8)
     fig.colorbar(im, ax=[ax4,ax5,ax6],shrink=.8)
 
-    fig.savefig('./figures/CGL_simulation_E-MLP.png',bbox_inches='tight')
+    # fig.savefig('./figures/CGL_simulation_E-MLP.png',bbox_inches='tight')
     
 if __name__=="__main__":
 
