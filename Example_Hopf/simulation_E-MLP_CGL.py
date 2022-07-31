@@ -231,7 +231,15 @@ if __name__=="__main__":
     
     hopf_comparison_plot(x_series, s_series, t_series, idx)
     
-    
+    # ########### save data ##############
+    # mask_ = t_series.flatten()<350
+    # np.save('./figures/Hopf_simulation.npy', np.c_[t_series[mask_,:], x_series[mask_,:], s_series[mask_,:]])
+    # t_all = np.cumsum(dt_x[idx:])
+    # mask = t_all<350
+    # t_ = t_all[mask]
+    # x_ = x1[idx:][mask]
+    # s_ = s1[idx:][mask]
+    # np.save('./figures/Hopf_part.npy', np.c_[t_, x_, s_])
     
     
     

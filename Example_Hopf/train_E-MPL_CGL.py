@@ -9,10 +9,14 @@ Created on Thu Jan 27 10:44:14 2022
 import sys 
 sys.path.append("..") 
 import torch
+import time
 import numpy as np
 from utils import get_dataset, get_inter_grid, get_cond_noise
 from misc import train_model, parameters
 
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+    
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 params = parameters(data_type='CGL', n_trainset=1, kx=1, ks=10, lr=5e-4)
 
@@ -33,11 +37,14 @@ if __name__=="__main__":
     #####################
     from model import model_f_hopf
     model_f = model_f_hopf().to(device)
-    
+    print(f'model N has {count_parameters(model_f)} parameters')
+
     inputs = np.c_[np.ones_like(s1), x1, s1]
     target = np.c_[diff_x,diff_s]
+    t0 = time.time()
     model_f = train_model(model_f, inputs, target, niter=20000, lr=params.lr)
-    
+    print(f'time for training model f: {(time.time()-t0)/60}')
+
     ### save model
     torch.save(model_f.state_dict(), params.model_f_path) 
     
@@ -74,8 +81,12 @@ if __name__=="__main__":
     
     from model import model_std_mean_hopf
     model_H = model_std_mean_hopf().to(device)
-    
+    print(f'model H has {count_parameters(model_H)} parameters')
+
+    t0 = time.time()
     model_H = train_model(model_H, inputs=obs, target=std_mean, niter=10000, lr=params.lr)
+    print(f'time for training model H: {(time.time()-t0)/60}')
+
     torch.save(model_H.state_dict(), params.model_std_mean_path)
     
     
@@ -86,7 +97,8 @@ if __name__=="__main__":
     #####################
     from model import model_fs_dist_hopf
     model_K = model_fs_dist_hopf().to(device)
-    
+    print(f'model K has {count_parameters(model_K)} parameters')
+
     x1_re = np.repeat(x1[idx_used,:], bins_u, axis=0)
     s1_re = np.repeat(s1[idx_used,:], bins_u, axis=0)
     unif_re = np.repeat(unif[:,None], idx_used.sum(), axis=1).T.reshape(-1,1)
@@ -94,7 +106,10 @@ if __name__=="__main__":
     obs = np.c_[x1_re, s1_re, unif_re]
     eps = dist[idx_used,:].reshape(-1,1)
     
+    t0 = time.time()
     model_K = train_model(model_K, inputs=obs, target=eps, niter=200000, lr=params.lr)
+    print(f'time for training model K: {(time.time()-t0)/60}')
+
     torch.save(model_K.state_dict(), params.model_dist_path)
     
     

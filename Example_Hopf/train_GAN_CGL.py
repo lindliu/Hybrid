@@ -121,6 +121,8 @@ X = s1
 S = x1
 S_next = x2
 D_s = diff_x
+
+t0 = time.time()
 for epoch in range(num_epochs):
     # For each batch
     idx = np.random.choice(np.arange(X.shape[0]), batch_size)
@@ -201,7 +203,7 @@ for epoch in range(num_epochs):
     #     #torch.save(dis.state_dict(), 'discriminator'+str(epoch))
     #     torch.save(gen.state_dict(), 'generator-tanh-x2'+str(epoch))
 
-
+print(f'Training time is {(time.time()-t0)/60}')
 torch.save(gen.state_dict(), model_gen_path)    
 torch.save(dis.state_dict(), model_dis_path)    
 

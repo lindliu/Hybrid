@@ -59,7 +59,7 @@ def plot_x_s(t_series, x_series, s_series):
     plt.xlabel('t')
     # plt.legend()
     plt.title(r'Generated $\bar{\sigma}$')
-    plt.savefig('./figures/Saddle_simulation_E-MLP.png',bbox_inches='tight')
+    # plt.savefig('./figures/Saddle_simulation_E-MLP.png',bbox_inches='tight')
 
 if __name__=="__main__":
     
@@ -136,7 +136,7 @@ if __name__=="__main__":
         
     axes[0].set_title('X')
     axes[1].set_title(r'$\bar{\sigma}$')
-    fig.savefig('./figures/Simuation_by_E-MLP_with_Gaussian_noise.png')
+    # fig.savefig('./figures/Simuation_by_E-MLP_with_Gaussian_noise.png')
 
 
 
@@ -159,7 +159,37 @@ if __name__=="__main__":
     
     axes[0].set_title('X')
     axes[1].set_title(r'$\bar{\sigma}$')
-    fig.savefig('./figures/Simuation_by_E-MLP_with_empirical_noise.png')
+    # fig.savefig('./figures/Simuation_by_E-MLP_with_empirical_noise.png')
     
     
+    ############ save data(high noise) ###############
+    # np.save('./figures/Saddle_high_part.npy', np.c_[np.cumsum(dt_x), x1, s1])
+    # SS = []   #for high noise [5,13,17,9,16,11]
+    # for i, seed in enumerate([5,13,17,9,16,11]):
+    #     np.random.seed(seed)
+    #     x_init, s_init = [x1[idx_init]], [s1[idx_init]]
+    #     x_series, s_series, t_series = \
+    #         simulate_xs_with_EN(model_f, model_K, x_init, s_init, dt, length=length, stop_threshold=-1)
+
+    #     SS.append(np.c_[t_series, x_series, s_series])
+    #     plt.plot(t_series, x_series, label=seed)
+    # plt.legend()
+    # np.savez('./figures/Saddle_high_simulations.npz', *SS)
+    
+    
+    ############ save data(low noise) ###############
+    # np.save('./figures/Saddle_low_part.npy', np.c_[np.cumsum(dt_x), x1, s1])
+    # length = 20000
+    # dt = 0.001*ks
+    # SS = []   #for low noise [5,13,17,9,16,11]
+    # for i, seed in enumerate([5,13,17,9,16,11]):
+    #     np.random.seed(seed)
+    #     x_init, s_init = [x1[idx_init]], [s1[idx_init]]
+    #     x_series, s_series, t_series = \
+    #         simulate_xs_with_EN(model_f, model_eps, x_init, s_init, dt, length=length, stop_threshold=-1)
+
+    #     SS.append(np.c_[t_series, x_series, s_series])
+    #     plt.plot(t_series, x_series, label=seed)
+    # plt.legend()
+    # np.savez('./figures/Saddle_low_simulations.npz', *SS)
     
