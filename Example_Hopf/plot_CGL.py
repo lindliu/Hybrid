@@ -94,9 +94,9 @@ def plot_result_K(obs, eps, eps_out):
 
 
 def compare_distribution_rare_ordinary_case(obs, eps, eps_out, model_H, cond_dist_test, x_inter, s_inter):
-    fig = plt.figure(constrained_layout=True, figsize=(23, 10))
+    fig = plt.figure(constrained_layout=True, figsize=(20, 10))
     
-    subfigs = fig.subfigures(1, 2)
+    subfigs = fig.subfigures(1, 2, width_ratios=[1, 1.4])
     axsLeft = subfigs[0].subplots(1, 1, sharey=True)
     axsRight = subfigs[1].subplots(2, 1, sharex=True)
     
@@ -113,9 +113,9 @@ def compare_distribution_rare_ordinary_case(obs, eps, eps_out, model_H, cond_dis
     axsLeft.scatter(case_ordinary[0,0], case_ordinary[0,-1], marker="o", s=100, c='r')
     # axsLeft.annotate('ordinary case',  xy=(case_ordinary[0,0], case_ordinary[0,-1]))
     axsLeft.text(case_ordinary[0,0], case_ordinary[0,-1], s='case 2', fontsize='xx-large')
-    axsLeft.set_title('CGL training datasets scatter plot')
-    axsLeft.set_xlabel('$x_1$')
-    axsLeft.set_ylabel(r'$\bar{\sigma}$')
+    axsLeft.set_title('CGL training datasets scatter plot', fontsize=25)
+    axsLeft.set_xlabel('$x_1$', fontsize=25)
+    axsLeft.set_ylabel(r'$\bar{\sigma}$', fontsize=25)
     
     ##############################
     ### rare case distribution ###
@@ -139,8 +139,8 @@ def compare_distribution_rare_ordinary_case(obs, eps, eps_out, model_H, cond_dis
     j = (case_rare[0,-1]>s_inter).sum()-1
     axsRight[0].plot(cond_dist_test[i,j,:], unif, label='Empirical Distribution from testsets')
     
-    axsRight[0].legend(loc='upper left')
-    axsRight[0].set_title('The distribution of noise for case 1 in left Figure')
+    axsRight[0].legend(loc='upper left', fontsize=20)
+    axsRight[0].set_title('The distribution of noise for "case 1"', fontsize=25)
     
     ##################################
     ### ordinary case distribution ###
@@ -163,9 +163,9 @@ def compare_distribution_rare_ordinary_case(obs, eps, eps_out, model_H, cond_dis
     i = (case_ordinary[0,0]>x_inter).sum()-1
     j = (case_ordinary[0,-1]>s_inter).sum()-1
     axsRight[1].plot(cond_dist_test[i,j,:], unif, label='Empirical Distribution from testsets')
-    
-    axsRight[1].legend(loc='upper left')
-    axsRight[1].set_title('The distribution of noise for case 2 in left Figure')
+    axsRight[1].set_xlim(-0.038,0.025)
+    axsRight[1].legend(loc='upper left', fontsize=20)
+    axsRight[1].set_title('The distribution of noise for "case 2"', fontsize=25)
     
     fig.savefig('./figures/CGL_rare_ordinary_case.png', bbox_inches='tight')
 
@@ -279,9 +279,9 @@ if __name__=="__main__":
     eps_test = (s2_test - (s1_test + numerical[:,[-1]]*dt_s_test))/dt_s_test**.5
     
     bins_x, bins_s, bins_u = params.bins_x, params.bins_s, params.bins_u
-    x_inter, s_inter = get_inter_grid(x1[:,0], s1[:,0], bins_x, bins_s)
+    x_inter_, s_inter_ = get_inter_grid(x1[:,0], s1[:,0], bins_x, bins_s)
     dist_test, cond_dist_test, cond_std_test, cond_mean_test, idx_used_test, unif_test = \
-        get_cond_noise(eps_test, x1_test, s1_test, x_inter, s_inter, shape=[bins_x, bins_s, bins_u], n=100)
+        get_cond_noise(eps_test, x1_test, s1_test, x_inter_, s_inter_, shape=[bins_x, bins_s, bins_u], n=100)
     
     
-    compare_distribution_rare_ordinary_case(obs_K, eps, eps_out, model_H, cond_dist_test, x_inter, s_inter)
+    compare_distribution_rare_ordinary_case(obs_K, eps, eps_out, model_H, cond_dist_test, x_inter_, s_inter_)
