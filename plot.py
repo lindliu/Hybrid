@@ -135,7 +135,7 @@ ax7.set_yticklabels([0.45, .50, .55])
 # ax7.set_xticks([])
 # ax7.set_yticks([])
 
-fig.savefig('./figures/data_and_simulations.png', dpi=200, bbox_inches='tight')
+# fig.savefig('./figures/data_and_simulations.png', dpi=200, bbox_inches='tight')
 
 
 
@@ -246,4 +246,4 @@ axes[1].set_title('The ECDF of the time that rare event happens')
 axes[1].set_xlabel('t')
 axes[1].set_ylabel('Probability')
 
-fig.savefig('./figures/rare_event.png', dpi=200, bbox_inches='tight')
+# fig.savefig('./figures/rare_event.png', dpi=200, bbox_inches='tight')
